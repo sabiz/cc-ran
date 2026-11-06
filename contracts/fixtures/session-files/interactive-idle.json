@@ -1,0 +1,21 @@
+{
+  "pid": 4242,
+  "pidDomain": "demo-domain",
+  "procStart": "opaque-proc-start-1",
+  "sessionId": "00000000-0000-4000-8000-000000000001",
+  "cwd": "/home/demo/project",
+  "startedAt": 1762300000000,
+  "version": "2.1.318",
+  "kind": "interactive",
+  "entrypoint": "cli",
+  "name": "demo-session",
+  "nameSource": "custom",
+  "nameSince": 1762300000000,
+  "status": "idle",
+  "statusUpdatedAt": 1762300001000,
+  "updatedAt": 1762300001000,
+  "peerProtocol": 1,
+  "peerFeatures": [],
+  "messagingSocketPath": "/tmp/demo.sock",
+  "asksForConvertedSkills": false
+}

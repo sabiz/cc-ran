@@ -17,7 +17,10 @@ CREATE TABLE IF NOT EXISTS events (
     tool_name         TEXT,
     notification_type TEXT,
     model             TEXT,
-    disable_1m        INTEGER CHECK (disable_1m IN (0, 1))
+    disable_1m        INTEGER CHECK (disable_1m IN (0, 1)),
+    -- SessionStart の source（startup / resume / clear / compact / fork）。
+    -- compact は作業の途中でも発火するので、reducer が idle に戻さないために必要。
+    session_start_source TEXT
 ) STRICT;
 
 -- 集約したセッションの状態。書くのは daemon だけ。

@@ -235,6 +235,7 @@ public sealed class ContractSchemaTests : IDisposable
             [
                 "seq", "received_at", "origin", "source", "session_id", "event", "cwd",
                 "transcript_path", "tool_name", "notification_type", "model", "disable_1m",
+                "session_start_source",
             ],
             ViewColumns("events"));
     }
