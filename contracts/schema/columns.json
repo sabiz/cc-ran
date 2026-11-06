@@ -1,0 +1,28 @@
+{
+  "contract_version": "1.0",
+  "views": {
+    "v_sessions": [
+      { "name": "session_id", "type": "TEXT", "nullable": false },
+      { "name": "origin", "type": "TEXT", "nullable": false },
+      { "name": "display_name", "type": "TEXT", "nullable": false },
+      { "name": "cwd", "type": "TEXT", "nullable": true },
+      { "name": "kind", "type": "TEXT", "nullable": false },
+      { "name": "attention", "type": "TEXT", "nullable": false },
+      { "name": "attention_since", "type": "INTEGER", "nullable": false },
+      { "name": "context_used_tokens", "type": "INTEGER", "nullable": true },
+      { "name": "context_window_tokens", "type": "INTEGER", "nullable": true },
+      { "name": "context_ratio", "type": "REAL", "nullable": true },
+      { "name": "context_level", "type": "TEXT", "nullable": false },
+      { "name": "window_source", "type": "TEXT", "nullable": false },
+      { "name": "model", "type": "TEXT", "nullable": true },
+      { "name": "last_activity_at", "type": "INTEGER", "nullable": false },
+      { "name": "sort_rank", "type": "INTEGER", "nullable": false }
+    ],
+    "v_monitor": [
+      { "name": "contract_version", "type": "TEXT", "nullable": false },
+      { "name": "daemon_alive", "type": "INTEGER", "nullable": false },
+      { "name": "daemon_heartbeat_at", "type": "INTEGER", "nullable": true },
+      { "name": "hooks_seen", "type": "INTEGER", "nullable": false }
+    ]
+  }
+}
