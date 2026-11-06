@@ -1,0 +1,14 @@
+{
+  "name": "cc-ran",
+  "description": "Local marketplace for the cc-ran Claude Code plugin",
+  "owner": {
+    "name": "sAbIz"
+  },
+  "plugins": [
+    {
+      "name": "cc-ran",
+      "source": "./plugin",
+      "description": "Reports Claude Code session events to the cc-ran monitor"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "cc-ran",
+  "displayName": "cc-ran",
+  "description": "Reports Claude Code session events to the cc-ran monitor. Stores metadata only, never prompts or tool content.",
+  "author": {
+    "name": "sAbIz"
+  }
+}
