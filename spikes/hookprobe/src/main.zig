@@ -191,7 +191,7 @@ fn runHook(init: std.process.Init, self: [*:0]const u8) !void {
 fn runChild(init: std.process.Init) void {
     const io = init.io;
     var i: u32 = 0;
-    while (i < 60) : (i += 1) {
+    while (i < 300) : (i += 1) {
         log(io, "child heartbeat n={d} t={d}", .{ i, nowMs(io) });
         io.sleep(.fromSeconds(1), .real) catch return;
     }
