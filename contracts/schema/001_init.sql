@@ -102,7 +102,10 @@ SELECT
         ELSE 0
     END AS daemon_alive,
     daemon_heartbeat_at,
-    hooks_seen
+    CASE
+        WHEN hooks_seen = 1 OR EXISTS (SELECT 1 FROM events WHERE source = 'hook') THEN 1
+        ELSE 0
+    END AS hooks_seen
 FROM monitor_state;
 
 PRAGMA user_version = 1;

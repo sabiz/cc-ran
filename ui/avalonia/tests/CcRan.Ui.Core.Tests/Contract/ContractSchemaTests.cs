@@ -145,6 +145,31 @@ public sealed class ContractSchemaTests : IDisposable
         Assert.Equal(0L, Scalar("SELECT daemon_alive FROM v_monitor"));
     }
 
+    /// <summary>daemon が動いていなくても、Hook が届いているなら「プラグイン未導入」と案内してはいけない。</summary>
+    [Fact]
+    public void Hooks_seen_is_true_while_hook_events_wait_for_the_daemon()
+    {
+        ApplySchema();
+
+        Exec("""
+            INSERT INTO events(received_at, origin, source, session_id, event)
+            VALUES (1, 'local', 'hook', 's1', 'SessionStart')
+            """);
+
+        Assert.Equal(1L, Scalar("SELECT hooks_seen FROM v_monitor"));
+    }
+
+    [Fact]
+    public void Hooks_seen_stays_true_after_the_daemon_pruned_the_events()
+    {
+        ApplySchema();
+
+        Exec("UPDATE monitor_state SET hooks_seen = 1");
+
+        Assert.Equal(0L, Scalar("SELECT COUNT(*) FROM events"));
+        Assert.Equal(1L, Scalar("SELECT hooks_seen FROM v_monitor"));
+    }
+
     [Fact]
     public void Monitor_state_rejects_a_second_row()
     {

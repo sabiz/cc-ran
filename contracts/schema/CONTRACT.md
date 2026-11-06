@@ -53,7 +53,7 @@ UI が依存してよいのは、このファイルで定義する **`v_sessions
 | `contract_version` | TEXT | × | `major.minor` |
 | `daemon_alive` | INTEGER | × | heartbeat が既定の時間（`monitor_state.daemon_stale_ms`、既定 10 秒）以内に更新されていれば 1、そうでなければ 0 |
 | `daemon_heartbeat_at` | INTEGER | ○ | 最後の heartbeat。一度も起動していなければ NULL |
-| `hooks_seen` | INTEGER | × | Hook のイベントを一度でも処理していれば 1。0 なら UI は「プラグイン未導入」と案内します |
+| `hooks_seen` | INTEGER | × | Hook のイベントを一度でも受け取っていれば 1（daemon が未処理でも）。0 なら UI は「プラグイン未導入」と案内します |
 
 `daemon_alive` は `unixepoch('subsec')` を使うので、SQLite 3.42 以降が必要です。
 
