@@ -1,7 +1,7 @@
 # cc-ran 設計仕様（v1）
 
 - 日付：2026-11-05
-- 状態：レビュー待ち
+- 状態：承認済み（2026-11-06 の修正はレビュー待ち）
 - 名称：**cc-ran** = Claude Code - Realtime Activity Notifier
 
 ## 0. 目的とスコープ
@@ -108,9 +108,10 @@ cc-ran/
 ### 1.3 daemon の起動
 
 - `cc-ran hook` が `SessionStart` を受け取ったとき、daemon の heartbeat が古ければ、**切り離した独立プロセス**として `cc-ran daemon` を起動します。
-  - Windows：`DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW`。必要なら `CREATE_BREAKAWAY_FROM_JOB` も付けます（初期化時に検証）。
-  - macOS：`fork` → `setsid` → `exec`。
-- 起動を二重に試みても安全です。後から起動したほうは、単一起動ロック（§4.3）を取れずにすぐ終了します。
+  - Windows：`DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW` で、`bInheritHandles = FALSE` にします。`CREATE_BREAKAWAY_FROM_JOB` は付けません（ターミナルから起動した Claude Code では、付けなくても終了後に生き残ることを確認しました）。
+  - macOS：`fork` → `setsid` → stdio を `/dev/null` に切り替え → `exec`。
+  - どちらも、Hook の stdout のパイプを子プロセスに持たせません。持たせると Claude Code が Hook の終了を待ち続けるおそれがあるためです。
+- 起動を二重に試みても安全です。後から起動したほうは、単一起動ロック（§5.3）を取れずにすぐ終了します。
 - UI からも「daemon を起動」ボタンで同じ起動を行えます。
 
 ## 2. データソース
@@ -122,7 +123,10 @@ cc-ran/
 | **transcript（`.jsonl`）の末尾** | 最後の assistant メッセージの `message.model` と `message.usage` | コンテキスト使用率 |
 
 - `~/.claude/sessions/*.key` ファイルは**読みません**。
-- `procStart` は**プラットフォームごとに形式が違う、中身を解釈しない値**として扱い、一致するかどうかの比較だけに使います（mac での形式は初期化時に検証します）。
+- `procStart` は**プラットフォームごとに形式が違う値**として扱います。
+  - Windows：OS のプロセス開始時刻の FILETIME を 10 進の文字列にしたものです（確認済み）。OS から取得した値と比べて、pid の再利用を見分けます。
+  - macOS：形式は未確認です（§12）。確認できるまでは、pid の生存だけで判定し、`procStart` は同じ pid の中で値が変わったかどうかの比較だけに使います。
+  - `startedAt` は OS のプロセス開始時刻より数秒遅れるので、代わりには使えません。
 
 ### 2.1 プライバシー（保存してよい項目の許可リスト）
 
@@ -139,11 +143,13 @@ cc-ran/
 | `notification_type` | Notification |
 | `model` | SessionStart（含まれている場合） |
 | `disable_1m` | 環境変数 `CLAUDE_CODE_DISABLE_1M_CONTEXT` が設定されているか（0/1） |
+| `session_start_source` | SessionStart の `source`（`startup` / `resume` / `clear` / `compact` / `fork`）。列挙値です |
+| `agent_id` | サブエージェントの中で発火した Hook の `agent_id`。不透明な ID です |
 
-**保存しないもの**：`prompt`、`tool_input`、`tool_response`、`message`、`last_assistant_message`、`error` の本文、transcript の本文。
+**保存しないもの**：`prompt`、`tool_input`、`tool_response`、`message`、`title`、`last_assistant_message`、`error` と `error_details` の本文、`custom_instructions`、`session_title`、transcript の本文。
 
 - transcript から読むのは `type`、`isSidechain`、`message.model`、`message.usage` だけです。
-- この方針は RED のテストで保証します（§7.2）。
+- この方針は RED のテストで保証します（§8.2）。
 
 ## 3. 状態判定
 
@@ -156,17 +162,21 @@ cc-ran/
 | 🟠 `error` | API エラーでターンが止まった | `StopFailure` |
 | 🟢 `done` | 作業が完了し、ユーザーの番 | `Stop`、`Notification(agent_completed)` |
 | 🔵 `working` | 作業中 | `UserPromptSubmit`、`PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`SubagentStart`、`SubagentStop`、`PreCompact` |
-| ⚪ `idle` | 起動直後で、まだ指示を受けていない | `SessionStart` |
+| ⚪ `idle` | 起動直後で、まだ指示を受けていない | `SessionStart`（`source` が `compact` のときを除く） |
 | ✖ `ended` | 終了した | `SessionEnd`、またはプロセスの死亡（pid が存在しない、または `procStart` が一致しない） |
 
 ### 3.2 遷移のルール（reducer は純粋関数）
 
-- `needs_*` と `error` は、**その後に作業系のイベントか `Stop` が来たら解除**します。
+- `needs_*` と `error` は、**それを起こしたのと同じエージェントの作業イベントか、メインの `Stop` が来たら解除**します。起こしたエージェントは `sessions.attention_agent_id` に記録します（NULL はメイン）。
   - 許可した場合は `PostToolUse` が来て `working` に戻ります。
   - 拒否した場合は、次の `PreToolUse` か `Stop` が来て解除されます。
-- `done` は**次の `UserPromptSubmit` が来るまで維持**します。`Notification(idle_prompt)` が来ても `done` のままです。
+  - サブエージェントが起こした場合は、そのサブエージェントの `SubagentStop` でも解除します。
+  - **別のエージェントの作業イベントでは解除しません。** 並列のサブエージェントが動き続けていると、承認待ちが数秒で消えてしまうためです。
+- `done` は**次の `UserPromptSubmit` が来るまで維持**します。`Notification(idle_prompt)` が来ても、サブエージェントの作業イベントや `SubagentStop` が来ても `done` のままです。Claude Code の内部エージェントの `SubagentStop` は、`SubagentStart` なしで `Stop` の後に届きます（実際に観測しました）。`done` の間に `needs_*` や `error` が起きたら、そちらに移ります。
+- `SessionStart` の `source` が `compact` のときは状態を変えません。作業の途中でも発火するためです。それ以外の `source` では、`ended` のセッションも含めて `idle` にします（`--resume` で同じ `session_id` が戻ってきた場合）。
+- 知らない `notification_type` と、状態に関係しない `notification_type`（`idle_prompt`、`auth_success` など）では、状態を変えません。
 - **Hook のイベントがまだ 1 件もない**セッションは、セッションファイルの値で代用します（`busy` → `working`、`idle` → `idle`）。
-- `ended` になったセッションは、猶予時間（§9）を過ぎたら `v_sessions` から外します。
+- `ended` になったセッションは、猶予時間（§9）を過ぎたら daemon が `sessions` から行を削除します。VIEW に時刻の絞り込みは入れません。
 - **イベントの順序**は `events.seq`（AUTOINCREMENT）で決め、`received_at` は補助に使います。Hook は同期で実行します（`async` は使いません）。
 - reducer の入出力は「現在の状態とイベント 1 件を受け取り、次の状態を返す」形にし、I/O を持ちません。
 
@@ -207,7 +217,9 @@ daemon が計算して書き込みます。並べる基準は次の順です。
 | Opus 4.6、Sonnet 4.6 | **200,000**（`[1m]` を付けて選んだ場合だけ 1M。transcript では区別できないため、§4.2 の 3 で補正） |
 | Haiku 4.5 とそれより古いモデル | **200,000** |
 
-- `models.json` には、モデル ID の接頭辞、ウィンドウサイズ、出典、確認日を持たせます。新しいモデルが出たら、このファイルを更新します。
+- `models.json` には、モデル ID、ウィンドウサイズ、出典、確認日を持たせます。新しいモデルが出たら、このファイルを更新します。
+- 照合は、日付の接尾辞を外した ID の**完全一致**です。前方一致にすると、将来の `claude-opus-5-7` が `claude-opus-5` と一致してしまい、`fallback`（「推定」）になりません。
+- 古いモデル（Opus 4.5、Sonnet 4.5、Opus 4.1、Sonnet 4、Opus 4）も 200,000 として表に載せ、「推定」と表示されないようにします。
 
 ### 4.4 段階分け
 
@@ -264,12 +276,15 @@ daemon が計算して書き込みます。並べる基準は次の順です。
 - **`sessions`**（daemon 専用）
   - キーは `session_id`
   - 各ソースから集約した値：`origin`、`pid`、`proc_start`、`name`、`cwd`、`kind`、`transcript_path`、`model`、`disable_1m`
-  - 算出した値：`attention`、`attention_since`、`last_event_seq`、`last_activity_at`、`ended_at`、`context_used_tokens`、`context_window_tokens`、`window_source`、`context_level`、`sort_rank`
-- **`monitor_state`**（daemon 専用、key/value）
+  - 算出した値：`display_name`、`attention`、`attention_since`、`attention_agent_id`、`last_event_seq`、`last_activity_at`、`ended_at`、`context_used_tokens`、`context_window_tokens`、`window_source`、`context_level`、`sort_rank`
+- **`monitor_state`**（daemon 専用、**常に 1 行だけ**のテーブル。VIEW を単純にするため、key/value にはしません）
   - `contract_version`
-  - 単一起動ロック：`daemon_pid`、`daemon_proc_start`、`daemon_heartbeat_at`
+  - 単一起動ロック：`daemon_pid`、`daemon_proc_start`、`daemon_heartbeat_at`、`daemon_stale_ms`
   - `last_processed_seq`
   - `hooks_seen`：一度でも Hook のイベントを受け取ったら 1 にし、以後は戻しません
+  - `last_hook_at`：`cc-ran doctor` が表示します
+- 正確な定義は `contracts/schema/001_init.sql` にあります。`context_ratio` は `v_sessions` の中で計算します。
+- スキーマの適用は、最初に DB に触るもの（`cc-ran hook` か `cc-ran daemon`）が `PRAGMA user_version` を見て行います。
 - 列挙値は CHECK 制約で制限します。
 - 時刻はすべて UTC の epoch ミリ秒（INTEGER）です。
 
@@ -478,6 +493,8 @@ cc-ran は Claude Code の設定ファイルを書き換えません。プラグ
 | `cc-ran-ui`（Avalonia、Native AOT） | ローカルでビルドします | GitHub Actions の macOS runner で AOT ビルドし、`.app` を作ります |
 
 - mac の `.app` は `LSUIElement=true`（Dock に出さない）にし、署名は ad-hoc（`codesign -s -`）です。quarantine の外し方は README に書きます。
+- Windows の AOT ビルドには Visual Studio の C++ ツールが必要です。ILCompiler 10.0.14 は `vswhere.exe` を PATH から探すので、`%ProgramFiles(x86)%\Microsoft Visual Studio\Installer` を PATH に足して発行します。
+- AOT の exe は単一ファイルにはなりません。隣に置くネイティブライブラリ（`e_sqlite3`、`libSkiaSharp`、`libHarfBuzzSharp`、`av_libglesv2`）も zip に含めます。
 
 ### 10.3 CI
 
@@ -506,15 +523,19 @@ cc-ran は Claude Code の設定ファイルを書き換えません。プラグ
 - 公証（notarization）と正式な署名。
 - プラグインへのバイナリ同梱（§6.4）。
 
-## 12. 初期化時に検証する項目（plan の冒頭で行う）
+## 12. 初期化時の検証の結果
 
-1. Zig 0.17.1 と .NET 10 SDK を入れます（今の環境は Zig 0.15.1 と .NET SDK 8.0）。
-2. Zig 0.17 で SQLite の amalgamation をビルドし、`aarch64-macos` へのクロスコンパイルが通るか確かめます。
-3. Microsoft.Data.Sqlite が Native AOT（win-x64 と osx-arm64）で動くか確かめます。
-4. 切り離して起動した daemon が、Claude Code の終了に巻き込まれないか確かめます（Windows の Job Object、`CREATE_BREAKAWAY_FROM_JOB` の要否）。
-5. mac の `procStart` の形式を、CI の macOS runner で確かめます。
-6. プラグインの hook から、PATH にある `cc-ran` を呼べるか確かめます（Windows と mac。同梱方式の可否も合わせて）。
-7. `.gitattributes` で `contracts/**` を `eol=lf` に固定し、両方の OS で fixtures のバイト列が一致することを確かめます。
+詳細は `docs/specs/2026-11-05-cc-ran-findings.md` にあります。
+
+| # | 項目 | 結果 |
+|---|---|---|
+| 1 | ツールチェーン | 完了（Zig 0.17.1、.NET SDK 10.0.403） |
+| 2 | Zig 0.17 + SQLite + `aarch64-macos` へのクロスコンパイル | 確認済み（Windows と macOS） |
+| 3 | Microsoft.Data.Sqlite と Avalonia のトレイの Native AOT | Windows は確認済み。macOS は発行と SQLite の動作を確認済みで、トレイの目視は**未確認** |
+| 4 | 切り離した daemon | 確認済み（Windows のターミナル、macOS runner）。VS Code 拡張やデスクトップアプリから起動した場合は**未確認** |
+| 5 | mac の `procStart` の形式 | **未確認**（ユーザーの Mac で後日確認する。plan 01 の macOS の生存確認はこの結果で確定する） |
+| 6 | プラグインの hook から PATH 上の `cc-ran` を呼ぶ | Windows は `--plugin-dir` で確認済み。`/plugin install` の経路と macOS は**未確認**（§8.4 で確認） |
+| 7 | fixtures の改行コード | 確認済み（`Fixtures_use_lf_only` が Windows と macOS の CI で通る） |
 
 ## 13. リスクと前提
 
@@ -525,3 +546,5 @@ cc-ran は Claude Code の設定ファイルを書き換えません。プラグ
 | Opus/Sonnet 4.6 の `[1m]` | 使用量が 200K を超えるまで区別できません | config で上書きできるようにします。 |
 | Hook のイベント名や `notification_type` の追加・変更 | 将来変わる可能性があります | 未知の値は無視し、作業系として扱いません。 |
 | プラグインを後から無効にした場合 | `hooks_seen` は 1 のまま戻らないため、「プラグイン未導入」の案内は出ません | v1 では許容します。`cc-ran doctor` で最後に Hook を受け取った時刻を表示します。 |
+| 複数のエージェントが同時に承認待ちになった場合 | `attention_agent_id` は 1 つだけなので、片方の解決で解除されます | v1 では許容します。もう片方は、次の `PermissionRequest` か `Notification(permission_prompt)`（約 6 秒後）で戻ります。 |
+| `Stop` の後のバックグラウンド作業 | `Stop` の `background_tasks` が空でなくても `done` と表示します | v1 では許容します（将来の候補）。 |

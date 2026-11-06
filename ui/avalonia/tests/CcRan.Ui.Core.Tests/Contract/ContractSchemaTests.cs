@@ -225,6 +225,27 @@ public sealed class ContractSchemaTests : IDisposable
         Assert.Equal(1L, Scalar("SELECT COUNT(*) FROM events"));
     }
 
+    /// <summary>並列のサブエージェントが、別のエージェントの承認待ちを解除しないようにするための列。</summary>
+    [Fact]
+    public void Sessions_record_which_agent_raised_the_attention()
+    {
+        ApplySchema();
+        InsertSession(attention: "needs_permission");
+
+        Exec("UPDATE sessions SET attention_agent_id = 'agent-1'");
+
+        Assert.Equal("agent-1", Scalar("SELECT attention_agent_id FROM sessions"));
+    }
+
+    /// <summary>attention_agent_id は内部の列なので、公開 VIEW には出さない。</summary>
+    [Fact]
+    public void Attention_agent_id_is_not_part_of_the_public_contract()
+    {
+        ApplySchema();
+
+        Assert.DoesNotContain("attention_agent_id", ViewColumns("v_sessions"));
+    }
+
     /// <summary>spec §2.1 の許可リストにない列（本文など）が events に増えていないことを確かめる。</summary>
     [Fact]
     public void Events_only_have_allowlisted_columns()
@@ -235,7 +256,7 @@ public sealed class ContractSchemaTests : IDisposable
             [
                 "seq", "received_at", "origin", "source", "session_id", "event", "cwd",
                 "transcript_path", "tool_name", "notification_type", "model", "disable_1m",
-                "session_start_source",
+                "session_start_source", "agent_id",
             ],
             ViewColumns("events"));
     }

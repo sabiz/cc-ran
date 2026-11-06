@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS events (
     disable_1m        INTEGER CHECK (disable_1m IN (0, 1)),
     -- SessionStart の source（startup / resume / clear / compact / fork）。
     -- compact は作業の途中でも発火するので、reducer が idle に戻さないために必要。
-    session_start_source TEXT
+    session_start_source TEXT,
+    -- サブエージェントの中で発火した Hook の agent_id（不透明な ID で、本文ではない）。
+    agent_id          TEXT
 ) STRICT;
 
 -- 集約したセッションの状態。書くのは daemon だけ。
@@ -40,6 +42,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     attention             TEXT    NOT NULL CHECK (attention IN
                               ('needs_permission', 'needs_input', 'error', 'done', 'working', 'idle', 'ended')),
     attention_since       INTEGER NOT NULL,
+    -- needs_* や error を起こしたエージェント。NULL はメインのエージェント。
+    attention_agent_id    TEXT,
     last_event_seq        INTEGER,
     last_activity_at      INTEGER NOT NULL,
     ended_at              INTEGER,

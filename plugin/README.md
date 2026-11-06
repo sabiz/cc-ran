@@ -25,7 +25,7 @@ Claude Code のセッションイベントを、`cc-ran hook` で cc-ran の監�
 
 ## 保存するもの
 
-イベントの種別、`session_id`、受信時刻、`cwd`、`transcript_path`、`tool_name`、`notification_type`、`model`、`SessionStart` の `source`、`CLAUDE_CODE_DISABLE_1M_CONTEXT` が設定されているかどうか。
+イベントの種別、`session_id`、受信時刻、`cwd`、`transcript_path`、`tool_name`、`notification_type`、`model`、`SessionStart` の `source`、サブエージェントの `agent_id`、`CLAUDE_CODE_DISABLE_1M_CONTEXT` が設定されているかどうか。
 
 プロンプト、ツールの入出力、Claude の応答は保存しません。
 

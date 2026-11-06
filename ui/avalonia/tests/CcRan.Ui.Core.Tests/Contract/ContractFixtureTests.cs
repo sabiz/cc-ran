@@ -155,6 +155,47 @@ public class ContractFixtureTests
         Assert.All(values, value => Assert.Contains(Sentinel, value));
     }
 
+    /// <summary>実際の Hook 入力（2026-11-06 に観測）に合わせる。SessionStart にはまだ prompt_id がない。</summary>
+    [Theory]
+    [InlineData("startup")]
+    [InlineData("resume")]
+    [InlineData("clear")]
+    [InlineData("compact")]
+    [InlineData("fork")]
+    public void Session_start_has_no_prompt_id_yet(string source)
+    {
+        var json = ReadJson(Path.Combine(HookInputs, $"SessionStart.{source}.json"));
+
+        Assert.False(json.TryGetProperty("prompt_id", out _));
+    }
+
+    [Fact]
+    public void All_hook_inputs_carry_scratchpad_dir()
+    {
+        Assert.All(Files(HookInputs, "*.json"), f => Assert.True(ReadJson(f).TryGetProperty("scratchpad_dir", out _), f));
+    }
+
+    /// <summary>内部エージェントの SubagentStop は Stop の後に届き、SubagentStart も last_assistant_message もない。</summary>
+    [Fact]
+    public void Internal_subagent_stop_has_no_last_assistant_message()
+    {
+        var json = ReadJson(Path.Combine(HookInputs, "SubagentStop.internal.json"));
+
+        Assert.False(json.TryGetProperty("last_assistant_message", out _));
+        Assert.False(string.IsNullOrEmpty(json.GetProperty("agent_id").GetString()));
+    }
+
+    [Theory]
+    [InlineData("PreToolUse.subagent")]
+    [InlineData("PostToolUse.subagent")]
+    [InlineData("PermissionRequest.subagent")]
+    public void Subagent_inputs_carry_an_agent_id(string fixture)
+    {
+        var json = ReadJson(Path.Combine(HookInputs, $"{fixture}.json"));
+
+        Assert.False(string.IsNullOrEmpty(json.GetProperty("agent_id").GetString()));
+    }
+
     [Fact]
     public void Post_tool_use_failure_error_text_carries_a_sentinel()
     {

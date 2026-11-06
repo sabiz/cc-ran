@@ -43,10 +43,13 @@
 | `UserPromptSubmit` | `UserPromptSubmit` | | | | |
 | `PreToolUse` | `PreToolUse` | `Bash` | | | |
 | `PreToolUse.subagent` | `PreToolUse` | `Read` | | | |
+| `PostToolUse.subagent` | `PostToolUse` | `Write` | | | |
+| `PermissionRequest.subagent` | `PermissionRequest` | `Bash` | | | |
 | `PostToolUse` | `PostToolUse` | `Write` | | | |
 | `PostToolUseFailure` | `PostToolUseFailure` | `Bash` | | | |
 | `SubagentStart` | `SubagentStart` | | | | |
 | `SubagentStop` | `SubagentStop` | | | | |
+| `SubagentStop.internal` | `SubagentStop` | | | | |
 | `PreCompact` | `PreCompact` | | | | |
 | `PermissionRequest` | `PermissionRequest` | `Bash` | | | |
 | `Notification.<type>` | `Notification` | | `<type>` | | |
@@ -79,3 +82,14 @@
 | `unknown-model` | `claude-future-9` | 40000 | 表にないので window 200000、`fallback` |
 | `no-assistant` | なし | なし | `context_level = unknown`、`window_source = unknown` |
 | `broken-line` | `claude-opus-5-5` | 80000 | 末尾の壊れた行を無視する |
+
+## `agent_id`
+
+`agent_id` は、サブエージェントの中で発火した Hook にだけ入ります（表にないものは NULL）。
+
+| fixture | `agent_id` |
+|---|---|
+| `PreToolUse.subagent`、`PostToolUse.subagent`、`PermissionRequest.subagent`、`SubagentStart`、`SubagentStop` | `agent-1` |
+| `SubagentStop.internal` | `agent-internal` |
+
+`SubagentStop.internal` は、Claude Code の内部エージェントのものです。`SubagentStart` なしで、`Stop` の後に届きます（2026-11-06 に観測）。`done` を `working` に戻してはいけません。
