@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CcRan.Ui.Core/CcRan.Ui.Core.csproj" />
+    <Project Path="src/CcRan.Ui/CcRan.Ui.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CcRan.Ui.Core.Tests/CcRan.Ui.Core.Tests.csproj" />
+    <Project Path="tests/CcRan.Ui.Tests/CcRan.Ui.Tests.csproj" />
+  </Folder>
+</Solution>

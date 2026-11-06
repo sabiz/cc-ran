@@ -1,2 +1,17 @@
 # Claude Code のローカル設定（マシンごと）
 .claude/settings.local.json
+
+# Zig
+monitor/.zig-cache/
+monitor/zig-out/
+spikes/**/zig-out/
+spikes/**/.zig-cache/
+
+# .NET
+**/bin/
+**/obj/
+
+# SQLite
+*.db
+*.db-wal
+*.db-shm

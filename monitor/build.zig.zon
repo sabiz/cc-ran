@@ -1,0 +1,13 @@
+.{
+    .name = .cc_ran,
+    .version = "0.0.0",
+    .fingerprint = 0xf3c764b9874f3194, // Changing this has security and trust implications.
+    .minimum_zig_version = "0.17.1",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+        "tests",
+    },
+}

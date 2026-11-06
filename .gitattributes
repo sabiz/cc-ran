@@ -1,0 +1,5 @@
+# 契約と fixtures は、OS をまたいでバイト列を一致させるため LF に固定する
+contracts/** text eol=lf
+*.sql text eol=lf
+*.jsonl text eol=lf
+*.json text eol=lf
