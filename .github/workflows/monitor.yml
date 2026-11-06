@@ -1,0 +1,57 @@
+name: monitor
+
+on:
+  push:
+    paths:
+      - "monitor/**"
+      - "contracts/**"
+      - ".github/workflows/monitor.yml"
+  pull_request:
+    paths:
+      - "monitor/**"
+      - "contracts/**"
+      - ".github/workflows/monitor.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: monitor
+    steps:
+      - uses: actions/checkout@v7
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.1
+      - run: zig build test
+
+  cross-compile:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-macos
+            artifact: cc-ran-macos-arm64
+          - target: x86_64-windows
+            artifact: cc-ran-windows-x64
+    defaults:
+      run:
+        working-directory: monitor
+    steps:
+      - uses: actions/checkout@v7
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.1
+      - run: zig build -Dtarget=${{ matrix.target }} -Doptimize=ReleaseSafe
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: monitor/zig-out/bin/
+          if-no-files-found: error

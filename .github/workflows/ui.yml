@@ -1,0 +1,33 @@
+name: ui
+
+on:
+  push:
+    paths:
+      - "ui/**"
+      - "contracts/**"
+      - ".github/workflows/ui.yml"
+  pull_request:
+    paths:
+      - "ui/**"
+      - "contracts/**"
+      - ".github/workflows/ui.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ui/avalonia
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: ui/avalonia/global.json
+      - run: dotnet test
