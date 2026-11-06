@@ -1,0 +1,8 @@
+.{
+    .name = .hookprobe_spike,
+    .version = "0.0.0",
+    .fingerprint = 0xe028ac23d605ae8c,
+    .minimum_zig_version = "0.17.1",
+    .dependencies = .{},
+    .paths = .{""},
+}

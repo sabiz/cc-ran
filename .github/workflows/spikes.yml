@@ -44,3 +44,63 @@ jobs:
           ./zig-sqlite "$dir/t.db"
           ls -la "$dir"
           time (for i in 1 2 3 4 5 6 7 8 9 10; do ./zig-sqlite "$dir/t.db" 2>/dev/null; done)
+
+  aot-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - name: AotProbe を osx-arm64 の Native AOT で動かす
+        run: |
+          dotnet publish spikes/aot/AotProbe -r osx-arm64 -c Release -o out/probe
+          ls -la out/probe
+          ./out/probe/AotProbe "$RUNNER_TEMP/probe-日本語" contracts/schema/001_init.sql
+      - name: AotTray を osx-arm64 の Native AOT でビルドする
+        run: |
+          dotnet publish spikes/aot/AotTray -r osx-arm64 -c Release -o out/tray
+          ls -la out/tray
+
+  hookprobe-cross:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: spikes/hookprobe
+    steps:
+      - uses: actions/checkout@v7
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.1
+      - run: zig build -Dtarget=aarch64-macos -Doptimize=ReleaseSafe "-Dlog=/tmp/hookprobe.log"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: hookprobe-macos
+          path: spikes/hookprobe/zig-out/bin/cc-ran
+
+  hookprobe-run-macos:
+    needs: hookprobe-cross
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: hookprobe-macos
+          path: probe
+      - name: 親プロセスのグループを終了させても、切り離した子プロセスが生き残ることを確かめる
+        run: |
+          chmod +x probe/cc-ran
+          export PATH="$PWD/probe:$PATH"
+          rm -f /tmp/hookprobe.log
+          # 新しいプロセスグループの中で、Hook のように stdin を渡して起動し、グループごと終了させる
+          perl -e 'use POSIX; POSIX::setsid(); open(STDIN, "<", $ARGV[0]) or die; sleep 0; system("cc-ran", "hook"); sleep 30' contracts/fixtures/hook-inputs/SessionStart.startup.json &
+          leader=$!
+          sleep 3
+          cat /tmp/hookprobe.log | cut -c1-160
+          kill -9 -- "-$leader"
+          before=$(grep -c 'child heartbeat' /tmp/hookprobe.log)
+          sleep 6
+          after=$(grep -c 'child heartbeat' /tmp/hookprobe.log)
+          echo "heartbeats before=$before after=$after"
+          test "$after" -gt "$before"
+          grep -q 'hook done' /tmp/hookprobe.log

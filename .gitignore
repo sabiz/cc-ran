@@ -15,3 +15,6 @@ spikes/**/.zig-cache/
 *.db
 *.db-wal
 *.db-shm
+
+# spike の成果物
+spikes/aot/out/
