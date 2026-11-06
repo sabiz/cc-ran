@@ -1,0 +1,46 @@
+{
+  "name": "parallel-subagent-keeps-permission",
+  "description": "サブエージェントの承認待ちは、メインの作業イベントで消えない",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 20,
+      "input": "PostToolUse",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 30,
+      "input": "PreToolUse",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 40,
+      "input": "PostToolUse.subagent",
+      "expect": {
+        "attention": "working",
+        "since": 40,
+        "agent_id": null
+      }
+    }
+  ]
+}

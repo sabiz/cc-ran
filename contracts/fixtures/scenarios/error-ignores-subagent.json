@@ -1,0 +1,28 @@
+{
+  "name": "error-ignores-subagent",
+  "description": "サブエージェントの作業では error を解除しない",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "StopFailure",
+      "expect": {
+        "attention": "error",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PreToolUse.subagent",
+      "expect": {
+        "attention": "error",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

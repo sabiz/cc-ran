@@ -1,0 +1,28 @@
+{
+  "name": "done-interrupted-by-permission",
+  "description": "done の間に承認待ちが来たら移る",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PermissionRequest.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 20,
+        "agent_id": "agent-1"
+      }
+    }
+  ]
+}

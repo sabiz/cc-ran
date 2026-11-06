@@ -1,0 +1,28 @@
+{
+  "name": "permission-denied-then-stop",
+  "description": "拒否すると Stop で解除される",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 20,
+        "agent_id": null
+      }
+    }
+  ]
+}

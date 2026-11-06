@@ -1,0 +1,73 @@
+{
+  "name": "ended-is-final-until-restart",
+  "description": "ended は SessionStart（compact を除く）でだけ戻る",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "SessionEnd",
+      "expect": {
+        "attention": "ended",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PreToolUse",
+      "expect": {
+        "attention": "ended",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 30,
+      "input": "Stop",
+      "expect": {
+        "attention": "ended",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 40,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "ended",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 50,
+      "input": "UserPromptSubmit",
+      "expect": {
+        "attention": "ended",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 55,
+      "input": "SessionStart.compact",
+      "expect": {
+        "attention": "ended",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 60,
+      "input": "SessionStart.resume",
+      "expect": {
+        "attention": "idle",
+        "since": 60,
+        "agent_id": null
+      }
+    }
+  ]
+}

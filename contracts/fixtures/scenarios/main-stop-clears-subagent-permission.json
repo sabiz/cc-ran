@@ -1,0 +1,28 @@
+{
+  "name": "main-stop-clears-subagent-permission",
+  "description": "メインの Stop は、どのエージェントの承認待ちも解除する",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 20,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 20,
+        "agent_id": null
+      }
+    }
+  ]
+}

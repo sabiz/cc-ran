@@ -1,0 +1,19 @@
+{
+  "name": "agent-completed-is-done",
+  "description": "バックグラウンドセッションの完了通知",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Notification.agent_completed",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

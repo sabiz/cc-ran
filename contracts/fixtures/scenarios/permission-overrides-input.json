@@ -1,0 +1,28 @@
+{
+  "name": "permission-overrides-input",
+  "description": "入力待ちの間に承認待ちが来たら移る",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Notification.elicitation_dialog",
+      "expect": {
+        "attention": "needs_input",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 20,
+        "agent_id": null
+      }
+    }
+  ]
+}

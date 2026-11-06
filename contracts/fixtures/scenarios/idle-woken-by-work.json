@@ -1,0 +1,19 @@
+{
+  "name": "idle-woken-by-work",
+  "description": "指示なしで作業が始まったら working（再開など）",
+  "start": {
+    "attention": "idle",
+    "since": 0
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PreToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

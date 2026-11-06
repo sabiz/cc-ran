@@ -1,0 +1,28 @@
+{
+  "name": "permission-notification-after-request",
+  "description": "約 6 秒後の通知で since が変わらない",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 16,
+      "input": "Notification.permission_prompt",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

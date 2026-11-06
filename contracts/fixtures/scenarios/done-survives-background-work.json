@@ -1,0 +1,64 @@
+{
+  "name": "done-survives-background-work",
+  "description": "done はサブエージェントの作業や催促の通知で変わらない",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PreToolUse.subagent",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 30,
+      "input": "Notification.idle_prompt",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 40,
+      "input": "SubagentStart",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 50,
+      "input": "PreCompact",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 60,
+      "input": "SessionStart.compact",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

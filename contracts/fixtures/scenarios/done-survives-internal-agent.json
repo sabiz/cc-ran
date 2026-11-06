@@ -1,0 +1,28 @@
+{
+  "name": "done-survives-internal-agent",
+  "description": "Stop の後に内部エージェントの SubagentStop が届いても done のまま（観測済み）",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 11,
+      "input": "SubagentStop.internal",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "subagent-stop-clears-own-permission",
+  "description": "サブエージェントが止まれば、そのエージェントの承認待ちは解除される",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 20,
+      "input": "SubagentStop",
+      "expect": {
+        "attention": "working",
+        "since": 20,
+        "agent_id": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "name": "main-permission-ignores-subagent",
+  "description": "メインの承認待ちは、サブエージェントのイベントで消えない",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PostToolUse.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 30,
+      "input": "PreToolUse.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 40,
+      "input": "SubagentStart",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 50,
+      "input": "SubagentStop",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 60,
+      "input": "PostToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 60,
+        "agent_id": null
+      }
+    }
+  ]
+}

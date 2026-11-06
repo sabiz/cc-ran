@@ -1,0 +1,28 @@
+{
+  "name": "done-cleared-by-prompt",
+  "description": "次の入力で作業中に戻る",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "UserPromptSubmit",
+      "expect": {
+        "attention": "working",
+        "since": 20,
+        "agent_id": null
+      }
+    }
+  ]
+}

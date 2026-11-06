@@ -1,0 +1,55 @@
+{
+  "name": "input-then-stop",
+  "description": "入力待ちの 3 種類と解除",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Notification.elicitation_dialog",
+      "expect": {
+        "attention": "needs_input",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 20,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 30,
+      "input": "Notification.elicitation_url_dialog",
+      "expect": {
+        "attention": "needs_input",
+        "since": 30,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 40,
+      "input": "PreToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 40,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 50,
+      "input": "Notification.agent_needs_input",
+      "expect": {
+        "attention": "needs_input",
+        "since": 50,
+        "agent_id": null
+      }
+    }
+  ]
+}

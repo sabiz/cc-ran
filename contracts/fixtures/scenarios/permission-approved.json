@@ -1,0 +1,37 @@
+{
+  "name": "permission-approved",
+  "description": "許可すると PostToolUse で working に戻る",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PreToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 5,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 20,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 30,
+      "input": "PostToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 30,
+        "agent_id": null
+      }
+    }
+  ]
+}

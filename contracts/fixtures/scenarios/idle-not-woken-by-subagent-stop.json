@@ -1,0 +1,19 @@
+{
+  "name": "idle-not-woken-by-subagent-stop",
+  "description": "起動直後の内部エージェントで working にしない",
+  "start": {
+    "attention": "idle",
+    "since": 0
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "SubagentStop.internal",
+      "expect": {
+        "attention": "idle",
+        "since": 0,
+        "agent_id": null
+      }
+    }
+  ]
+}

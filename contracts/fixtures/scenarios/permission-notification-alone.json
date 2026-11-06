@@ -1,0 +1,19 @@
+{
+  "name": "permission-notification-alone",
+  "description": "PermissionRequest がなくても通知で承認待ちになる",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Notification.permission_prompt",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}

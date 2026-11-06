@@ -1,0 +1,28 @@
+{
+  "name": "unknown-ignored",
+  "description": "状態に関係しない通知と、知らないイベントでは変わらない",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "Notification.auth_success",
+      "expect": {
+        "attention": "working",
+        "since": 5,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "event": "FutureEvent",
+      "expect": {
+        "attention": "working",
+        "since": 5,
+        "agent_id": null
+      }
+    }
+  ]
+}

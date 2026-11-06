@@ -1,6 +1,7 @@
 //! cc-ran のプロダクトコードの入口。main.zig とテストはここから import する。
 
 pub const model = @import("model.zig");
+pub const reducer = @import("reducer.zig");
 pub const sqlite_c = @import("sqlite_c");
 
 /// contracts/schema/001_init.sql

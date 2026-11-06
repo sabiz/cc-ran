@@ -1,0 +1,37 @@
+{
+  "name": "second-agent-permission-keeps-first",
+  "description": "同時に承認待ちになると最初のエージェントが残る（spec §13 の既知の制限）",
+  "start": {
+    "attention": "working",
+    "since": 5
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "PermissionRequest.subagent",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 20,
+      "input": "PermissionRequest",
+      "expect": {
+        "attention": "needs_permission",
+        "since": 10,
+        "agent_id": "agent-1"
+      }
+    },
+    {
+      "at": 30,
+      "input": "PostToolUse.subagent",
+      "expect": {
+        "attention": "working",
+        "since": 30,
+        "agent_id": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "basic-turn",
+  "description": "通常の 1 ターン。working の since は UserPromptSubmit の時刻のまま",
+  "start": {
+    "attention": "idle",
+    "since": 0
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "SessionStart.startup",
+      "expect": {
+        "attention": "idle",
+        "since": 0,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "UserPromptSubmit",
+      "expect": {
+        "attention": "working",
+        "since": 20,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 30,
+      "input": "PreToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 20,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 40,
+      "input": "PostToolUse",
+      "expect": {
+        "attention": "working",
+        "since": 20,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 50,
+      "input": "Stop",
+      "expect": {
+        "attention": "done",
+        "since": 50,
+        "agent_id": null
+      }
+    }
+  ]
+}

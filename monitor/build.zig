@@ -5,6 +5,7 @@ const test_files = [_][]const u8{
     "tests/smoke_test.zig",
     "tests/sqlite_link_test.zig",
     "tests/model_test.zig",
+    "tests/reducer_test.zig",
 };
 
 pub fn build(b: *std.Build) void {

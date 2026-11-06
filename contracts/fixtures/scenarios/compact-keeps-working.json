@@ -1,0 +1,28 @@
+{
+  "name": "compact-keeps-working",
+  "description": "コンパクション後の SessionStart で idle に戻らない",
+  "start": {
+    "attention": "idle",
+    "since": 0
+  },
+  "steps": [
+    {
+      "at": 10,
+      "input": "UserPromptSubmit",
+      "expect": {
+        "attention": "working",
+        "since": 10,
+        "agent_id": null
+      }
+    },
+    {
+      "at": 20,
+      "input": "SessionStart.compact",
+      "expect": {
+        "attention": "working",
+        "since": 10,
+        "agent_id": null
+      }
+    }
+  ]
+}
