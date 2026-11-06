@@ -1,8 +1,0 @@
-.{
-    .name = .zig_sqlite_spike,
-    .version = "0.0.0",
-    .fingerprint = 0x467d71ea9537cf77,
-    .minimum_zig_version = "0.17.1",
-    .dependencies = .{},
-    .paths = .{""},
-}

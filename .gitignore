@@ -4,8 +4,6 @@
 # Zig
 monitor/.zig-cache/
 monitor/zig-out/
-spikes/**/zig-out/
-spikes/**/.zig-cache/
 
 # .NET
 **/bin/
@@ -16,5 +14,3 @@ spikes/**/.zig-cache/
 *.db-wal
 *.db-shm
 
-# spike の成果物
-spikes/aot/out/
