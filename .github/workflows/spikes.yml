@@ -1,0 +1,46 @@
+# spike：Task 11 で削除する。
+# workflow_dispatch は default branch にファイルがないと起動できないので、spike/** への push で動かす。
+name: spikes
+
+on:
+  push:
+    branches:
+      - "spike/**"
+
+permissions:
+  contents: read
+
+jobs:
+  zig-sqlite-cross:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: spikes/zig-sqlite
+    steps:
+      - uses: actions/checkout@v7
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.1
+      - run: zig build -Dtarget=aarch64-macos -Doptimize=ReleaseSafe
+      - uses: actions/upload-artifact@v7
+        with:
+          name: zig-sqlite-macos
+          path: spikes/zig-sqlite/zig-out/bin/zig-sqlite
+
+  zig-sqlite-run-macos:
+    needs: zig-sqlite-cross
+    runs-on: macos-latest
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          name: zig-sqlite-macos
+      - name: Windows でクロスコンパイルしたバイナリを macOS で動かす
+        run: |
+          chmod +x ./zig-sqlite
+          file ./zig-sqlite
+          dir="$RUNNER_TEMP/日本語パス"
+          mkdir -p "$dir"
+          ./zig-sqlite "$dir/t.db"
+          ./zig-sqlite "$dir/t.db"
+          ls -la "$dir"
+          time (for i in 1 2 3 4 5 6 7 8 9 10; do ./zig-sqlite "$dir/t.db" 2>/dev/null; done)
