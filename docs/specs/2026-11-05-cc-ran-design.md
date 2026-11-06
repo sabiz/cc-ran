@@ -107,7 +107,8 @@ cc-ran/
 
 ### 1.3 daemon の起動
 
-- `cc-ran hook` が `SessionStart` を受け取ったとき、daemon の heartbeat が古ければ、**切り離した独立プロセス**として `cc-ran daemon` を起動します。
+- `cc-ran hook` は、**どのイベントでも** daemon の heartbeat を確認し、古ければ**切り離した独立プロセス**として `cc-ran daemon` を起動します。セッションの途中で daemon が落ちても、作業中のセッションがあれば数秒で復旧します。
+- daemon の作業ディレクトリはデータディレクトリ（§5.1）にします。セッションの `cwd` を引き継ぐと、Windows ではそのフォルダを削除や改名できなくなるためです。
   - Windows：`DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW` で、`bInheritHandles = FALSE` にします。`CREATE_BREAKAWAY_FROM_JOB` は付けません（ターミナルから起動した Claude Code では、付けなくても終了後に生き残ることを確認しました）。
   - macOS：`fork` → `setsid` → stdio を `/dev/null` に切り替え → `exec`。
   - どちらも、Hook の stdout のパイプを子プロセスに持たせません。持たせると Claude Code が Hook の終了を待ち続けるおそれがあるためです。
@@ -176,6 +177,7 @@ cc-ran/
 - `SessionStart` の `source` が `compact` のときは状態を変えません。作業の途中でも発火するためです。それ以外の `source` では、`ended` のセッションも含めて `idle` にします（`--resume` で同じ `session_id` が戻ってきた場合）。
 - 知らない `notification_type` と、状態に関係しない `notification_type`（`idle_prompt`、`auth_success` など）では、状態を変えません。
 - **Hook のイベントがまだ 1 件もない**セッションは、セッションファイルの値で代用します（`busy` → `working`、`idle` → `idle`）。
+- **`Stop` はユーザーの中断（Esc）では発火しません。** そのため、`working` のセッションでセッションファイルの `status` が `idle` になり、`statusUpdatedAt` が `attention_since` より新しく、その状態が 3 秒続いたら、`idle` に補正します。この補正は daemon が行います。`needs_*` にも同じ補正が必要かどうかは、承認ダイアログの表示中の `status` を E2E で確かめてから決めます。
 - `ended` になったセッションは、猶予時間（§9）を過ぎたら daemon が `sessions` から行を削除します。VIEW に時刻の絞り込みは入れません。
 - **イベントの順序**は `events.seq`（AUTOINCREMENT）で決め、`received_at` は補助に使います。Hook は同期で実行します（`async` は使いません）。
 - reducer の入出力は「現在の状態とイベント 1 件を受け取り、次の状態を返す」形にし、I/O を持ちません。
@@ -386,7 +388,7 @@ cc-ran は Claude Code の設定ファイルを書き換えません。プラグ
 | 実行方式 | 同期で実行します（`async` は使いません）。 |
 | 時間 | `busy_timeout` は約 500ms です。超えたらイベントを捨てます。目標は 1 回 50ms 未満です。 |
 | 保存する項目 | §2.1 の許可リストだけです。 |
-| daemon | SessionStart を受け取ったとき、heartbeat が古ければ起動します（§1.3）。 |
+| daemon | どのイベントでも、heartbeat が古ければ起動します（§1.3）。 |
 | 最適化レベル | `ReleaseSafe` です。panic したときの終了コードは 2 以外なので、ブロックしません。 |
 
 ### 6.4 将来の選択肢

@@ -75,3 +75,9 @@ plan 01 への注意：
 
 - `PermissionRequest` と `Notification` は発生しなかった（試したコマンドは承認なしで実行された）。承認待ちの検知は、公式ドキュメントのスキーマに基づく。plan 01 の E2E で必ず確認する。
 - `/plugin marketplace add` と `/plugin install` の経路（`claude plugin validate` は通っている）。
+
+## plan 00 の後に追加した設計判断（2026-11-06）
+
+- **daemon の復旧**：ユーザーの判断で、SessionStart だけでなく、すべての Hook で heartbeat を確認して起動する。
+- **ユーザーの中断**：公式の Hook リファレンスに「`Stop` はユーザーの中断では発火しない」とある。セッションファイルの `status` で `working` を補正する（spec §3.2）。
+- **daemon の作業ディレクトリ**：データディレクトリにする。spike では null（親の cwd を継承）で動かしていた。
