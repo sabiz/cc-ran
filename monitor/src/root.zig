@@ -2,6 +2,9 @@
 
 pub const model = @import("model.zig");
 pub const reducer = @import("reducer.zig");
+pub const config = @import("config.zig");
+pub const context = @import("context.zig");
+pub const rank = @import("rank.zig");
 pub const sqlite_c = @import("sqlite_c");
 
 /// contracts/schema/001_init.sql
