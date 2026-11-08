@@ -55,9 +55,12 @@ pub fn build(b: *std.Build) void {
     test_options.addOptionPathDirectory("contracts_dir", b.path("../contracts"));
     test_options.addOptionPath("cc_ran_exe", exe.getEmittedBin());
 
+    const test_filters = b.option([]const []const u8, "test-filter", "Run only tests whose name contains this text") orelse &.{};
+
     const test_step = b.step("test", "Run tests");
     for (test_files) |path| {
         const tests = b.addTest(.{
+            .filters = test_filters,
             .root_module = b.createModule(.{
                 .root_source_file = b.path(path),
                 .target = target,
