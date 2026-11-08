@@ -124,9 +124,9 @@ spec が前提にしているのに、見落としやすい条件。それぞれ
 - Produces：
 
   ```zig
-  pub fn initial(at: i64) !AttentionState;                 // idle
-  pub fn apply(state: AttentionState, event: EventRow) !AttentionState;
-  pub fn reconcile(state: AttentionState, status: FileStatus, status_updated_at: ?i64, now: i64) !AttentionState;
+  pub fn initial(at: i64) AttentionState;                 // idle
+  pub fn apply(state: AttentionState, event: EventRow) AttentionState;
+  pub fn reconcile(state: AttentionState, status: FileStatus, status_updated_at: ?i64, now: i64) AttentionState;
   ```
 
 - シナリオの形式：`{"name": "...", "start": {"attention": "idle", "since": 0}, "steps": [{"at": 10, "input": "PreToolUse", "expect": {"attention": "working", "since": 10, "agent_id": null}}]}`。`input` は `hook-inputs/` の fixture 名で、`at` が `received_at`。
@@ -140,7 +140,7 @@ spec が前提にしているのに、見落としやすい条件。それぞれ
 | `UserPromptSubmit` | `working`（`done` と `needs_*` と `error` をすべて解除。`ended` は除く） |
 | `PermissionRequest`、`Notification(permission_prompt)` | `needs_permission`、`agent_id` を記録（`ended` は除く） |
 | `Notification(elicitation_dialog / elicitation_url_dialog / agent_needs_input)` | `needs_input`、`agent_id` を記録（`ended` は除く） |
-| `StopFailure` | `error`（`ended` は除く） |
+| `StopFailure` | `error`、`agent_id` を記録（`ended` は除く） |
 | `Stop`、`Notification(agent_completed)` | `done`（`ended` は除く） |
 | `PreToolUse`、`PostToolUse`、`PostToolUseFailure`、`SubagentStart`、`PreCompact` | `idle` と `working` なら `working`。`needs_*` と `error` は **`agent_id` が一致するときだけ** `working`。`done` と `ended` は変えない |
 | `SubagentStop` | `needs_*` と `error` で `agent_id` が一致するときだけ `working`。それ以外は変えない（`idle` も `working` に**しない**） |
