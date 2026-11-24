@@ -5,6 +5,9 @@ pub const reducer = @import("reducer.zig");
 pub const config = @import("config.zig");
 pub const context = @import("context.zig");
 pub const rank = @import("rank.zig");
+pub const hook_input = @import("hook_input.zig");
+pub const session_file = @import("sources/session_file.zig");
+pub const transcript = @import("sources/transcript.zig");
 pub const sqlite_c = @import("sqlite_c");
 
 /// contracts/schema/001_init.sql

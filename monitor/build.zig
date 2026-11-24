@@ -9,6 +9,9 @@ const test_files = [_][]const u8{
     "tests/config_test.zig",
     "tests/context_test.zig",
     "tests/rank_test.zig",
+    "tests/hook_input_test.zig",
+    "tests/session_file_test.zig",
+    "tests/transcript_test.zig",
 };
 
 pub fn build(b: *std.Build) void {
