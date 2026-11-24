@@ -13,7 +13,7 @@ fn expectDefaults(settings: Config) !void {
     try std.testing.expectEqual(@as(f64, 0.70), settings.warn);
     try std.testing.expectEqual(@as(f64, 0.90), settings.critical);
     try std.testing.expectEqual(@as(i64, 300_000), settings.ended_grace_ms);
-    try std.testing.expectEqual(@as(?u64, null), try settings.modelOverride("claude-opus-4-6"));
+    try std.testing.expectEqual(@as(?u64, null), settings.modelOverride("claude-opus-4-6"));
 }
 
 test "config.parse: an empty object gives the defaults" {
@@ -35,7 +35,7 @@ test "config.parse: reads the example in spec 5.1" {
     try std.testing.expectEqual(@as(f64, 0.70), settings.warn);
     try std.testing.expectEqual(@as(f64, 0.90), settings.critical);
     try std.testing.expectEqual(@as(i64, 300_000), settings.ended_grace_ms);
-    try std.testing.expectEqual(@as(?u64, 1_000_000), try settings.modelOverride("claude-opus-4-6"));
+    try std.testing.expectEqual(@as(?u64, 1_000_000), settings.modelOverride("claude-opus-4-6"));
 }
 
 test "config.parse: reads values other than the defaults" {
@@ -50,8 +50,8 @@ test "config.parse: reads values other than the defaults" {
     );
     try std.testing.expectEqual(@as(f64, 0.6), settings.warn);
     try std.testing.expectEqual(@as(f64, 0.85), settings.critical);
-    try std.testing.expectEqual(@as(?u64, 123_456), try settings.modelOverride("claude-test-a"));
-    try std.testing.expectEqual(@as(?u64, 64_000), try settings.modelOverride("claude-test-b"));
+    try std.testing.expectEqual(@as(?u64, 123_456), settings.modelOverride("claude-test-a"));
+    try std.testing.expectEqual(@as(?u64, 64_000), settings.modelOverride("claude-test-b"));
 }
 
 test "config.parse: endedGraceSeconds becomes milliseconds" {
@@ -110,10 +110,10 @@ test "Config.modelOverride: only an exact id matches" {
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();
     const settings = try parseIn(&arena_state, "{\"models\": {\"claude-opus-4-6\": 123456}}");
-    try std.testing.expectEqual(@as(?u64, 123_456), try settings.modelOverride("claude-opus-4-6"));
-    try std.testing.expectEqual(@as(?u64, null), try settings.modelOverride("claude-opus-4"));
-    try std.testing.expectEqual(@as(?u64, null), try settings.modelOverride("claude-opus-4-6-extra"));
-    try std.testing.expectEqual(@as(?u64, null), try settings.modelOverride(""));
+    try std.testing.expectEqual(@as(?u64, 123_456), settings.modelOverride("claude-opus-4-6"));
+    try std.testing.expectEqual(@as(?u64, null), settings.modelOverride("claude-opus-4"));
+    try std.testing.expectEqual(@as(?u64, null), settings.modelOverride("claude-opus-4-6-extra"));
+    try std.testing.expectEqual(@as(?u64, null), settings.modelOverride(""));
 }
 
 comptime {

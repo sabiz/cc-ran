@@ -53,22 +53,22 @@ fn levelOf(used: ?u64, window: ?u64, config_json: []const u8) !model.ContextLeve
 // ---------------------------------------------------------------------------
 
 test "stripDateSuffix: removes a trailing -YYYYMMDD" {
-    try std.testing.expectEqualStrings("claude-haiku-4-5", try context.stripDateSuffix("claude-haiku-4-5-20251001"));
-    try std.testing.expectEqualStrings("claude-opus-4", try context.stripDateSuffix("claude-opus-4-20250514"));
+    try std.testing.expectEqualStrings("claude-haiku-4-5", context.stripDateSuffix("claude-haiku-4-5-20251001"));
+    try std.testing.expectEqualStrings("claude-opus-4", context.stripDateSuffix("claude-opus-4-20250514"));
 }
 
 test "stripDateSuffix: keeps an id without a date" {
-    try std.testing.expectEqualStrings("claude-opus-5-5", try context.stripDateSuffix("claude-opus-5-5"));
-    try std.testing.expectEqualStrings("claude-opus-4-1", try context.stripDateSuffix("claude-opus-4-1"));
-    try std.testing.expectEqualStrings("claude-foo-123", try context.stripDateSuffix("claude-foo-123"));
-    try std.testing.expectEqualStrings("", try context.stripDateSuffix(""));
+    try std.testing.expectEqualStrings("claude-opus-5-5", context.stripDateSuffix("claude-opus-5-5"));
+    try std.testing.expectEqualStrings("claude-opus-4-1", context.stripDateSuffix("claude-opus-4-1"));
+    try std.testing.expectEqualStrings("claude-foo-123", context.stripDateSuffix("claude-foo-123"));
+    try std.testing.expectEqualStrings("", context.stripDateSuffix(""));
 }
 
 test "stripDateSuffix: only exactly eight digits after a hyphen count as a date" {
-    try std.testing.expectEqualStrings("claude-x-2025100", try context.stripDateSuffix("claude-x-2025100"));
-    try std.testing.expectEqualStrings("claude-x-202510011", try context.stripDateSuffix("claude-x-202510011"));
-    try std.testing.expectEqualStrings("claude-x-2025100a", try context.stripDateSuffix("claude-x-2025100a"));
-    try std.testing.expectEqualStrings("claude-x20251001", try context.stripDateSuffix("claude-x20251001"));
+    try std.testing.expectEqualStrings("claude-x-2025100", context.stripDateSuffix("claude-x-2025100"));
+    try std.testing.expectEqualStrings("claude-x-202510011", context.stripDateSuffix("claude-x-202510011"));
+    try std.testing.expectEqualStrings("claude-x-2025100a", context.stripDateSuffix("claude-x-2025100a"));
+    try std.testing.expectEqualStrings("claude-x20251001", context.stripDateSuffix("claude-x20251001"));
 }
 
 // ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ test "ModelTable.parse: reads the sizes from another table" {
     const table = try context.ModelTable.parse(arena_state.allocator(), custom_table_json);
     try std.testing.expectEqual(@as(u64, 128_000), table.default_window);
     try std.testing.expectEqual(@as(u64, 2_000_000), table.one_million);
-    try std.testing.expectEqual(@as(?u64, 64_000), try table.lookup("claude-test-small"));
+    try std.testing.expectEqual(@as(?u64, 64_000), table.lookup("claude-test-small"));
 }
 
 test "ModelTable.lookup: finds every model in models.json" {
@@ -106,7 +106,7 @@ test "ModelTable.lookup: finds every model in models.json" {
     for (models) |entry| {
         const id = entry.object.get("id").?.string;
         const window: u64 = @intCast(entry.object.get("window").?.integer);
-        std.testing.expectEqual(@as(?u64, window), try table.lookup(id)) catch |err| {
+        std.testing.expectEqual(@as(?u64, window), table.lookup(id)) catch |err| {
             std.debug.print("models.json の {s} が見つからないか、値が違います\n", .{id});
             return err;
         };
@@ -117,10 +117,10 @@ test "ModelTable.lookup: does not match by prefix" {
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();
     const table = try context.ModelTable.parse(arena_state.allocator(), cc_ran.models_json);
-    try std.testing.expectEqual(@as(?u64, null), try table.lookup("claude-opus-5-7"));
-    try std.testing.expectEqual(@as(?u64, null), try table.lookup("claude-opus-5-5-extra"));
-    try std.testing.expectEqual(@as(?u64, null), try table.lookup("claude-opus"));
-    try std.testing.expectEqual(@as(?u64, null), try table.lookup(""));
+    try std.testing.expectEqual(@as(?u64, null), table.lookup("claude-opus-5-7"));
+    try std.testing.expectEqual(@as(?u64, null), table.lookup("claude-opus-5-5-extra"));
+    try std.testing.expectEqual(@as(?u64, null), table.lookup("claude-opus"));
+    try std.testing.expectEqual(@as(?u64, null), table.lookup(""));
 }
 
 // ---------------------------------------------------------------------------
