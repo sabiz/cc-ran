@@ -185,6 +185,19 @@ test "transcript.readUsage: reads a fixture file" {
     try std.testing.expectEqualDeep(@as(?Usage, .{ .model = "claude-opus-5-5", .used = 123_456 }), try readUsageFreed(try tmpPath(arena, &tmp, "t.jsonl")));
 }
 
+test "transcript.readUsage: a file without a trailing newline keeps its last line" {
+    var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena_state.deinit();
+    const arena = arena_state.allocator();
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+    // 書き込み中の transcript は、最後の行の改行がまだないことがある。読んだバイトだけを使えば、最後の行も読める。
+    const bytes = try readFixture(arena, "last-assistant");
+    try tmp.dir.writeFile(std.testing.io, .{ .sub_path = "t.jsonl", .data = std.mem.trimEnd(u8, bytes, "\r\n") });
+
+    try std.testing.expectEqualDeep(@as(?Usage, .{ .model = "claude-opus-5-5", .used = 123_456 }), try readUsageFreed(try tmpPath(arena, &tmp, "t.jsonl")));
+}
+
 test "transcript.readUsage: a small file whose only assistant is the first line" {
     var arena_state = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena_state.deinit();

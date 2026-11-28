@@ -247,7 +247,7 @@ pub const SessionFile = struct {
 pub fn parse(arena: Allocator, json: []const u8) !?SessionFile;  // 壊れている、または sessionId か pid がなければ null
 /// *.json だけを読む。*.key は開かない。読めないファイルは飛ばす。
 pub fn scanDir(io: Io, arena: Allocator, dir_path: []const u8) ![]SessionFile;
-pub fn displayName(name: ?[]const u8, cwd: ?[]const u8, session_id: []const u8) ![]const u8;
+pub fn displayName(name: ?[]const u8, cwd: ?[]const u8, session_id: []const u8) []const u8;
 
 // sources/transcript.zig
 pub const Usage = struct { model: []const u8, used: u64 };

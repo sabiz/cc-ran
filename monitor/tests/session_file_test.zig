@@ -99,20 +99,56 @@ test "session_file.parse: a file without sessionId or pid is skipped" {
 // ---------------------------------------------------------------------------
 
 test "session_file.displayName: the name comes first" {
-    try std.testing.expectEqualStrings("demo-session", try session_file.displayName("demo-session", "/home/demo/project", session_id));
+    try std.testing.expectEqualStrings("demo-session", session_file.displayName("demo-session", "/home/demo/project", session_id));
 }
 
 test "session_file.displayName: without a name, the last directory of cwd" {
-    try std.testing.expectEqualStrings("project", try session_file.displayName(null, "/home/demo/project", session_id));
-    try std.testing.expectEqualStrings("project", try session_file.displayName(null, "/home/demo/project/", session_id));
-    try std.testing.expectEqualStrings("プロジェクト", try session_file.displayName(null, "C:\\Users\\x\\プロジェクト", session_id));
-    try std.testing.expectEqualStrings("プロジェクト", try session_file.displayName(null, "C:\\Users\\x\\プロジェクト\\", session_id));
+    try std.testing.expectEqualStrings("project", session_file.displayName(null, "/home/demo/project", session_id));
+    try std.testing.expectEqualStrings("project", session_file.displayName(null, "/home/demo/project/", session_id));
+    try std.testing.expectEqualStrings("プロジェクト", session_file.displayName(null, "C:\\Users\\x\\プロジェクト", session_id));
+    try std.testing.expectEqualStrings("プロジェクト", session_file.displayName(null, "C:\\Users\\x\\プロジェクト\\", session_id));
+}
+
+test "session_file.displayName: the name comes first even without a cwd" {
+    try std.testing.expectEqualStrings("demo-session", session_file.displayName("demo-session", null, session_id));
+}
+
+test "session_file.displayName: a cwd with no separator is the name as it is" {
+    try std.testing.expectEqualStrings("project", session_file.displayName(null, "project", session_id));
+}
+
+test "session_file.displayName: every trailing separator is removed" {
+    try std.testing.expectEqualStrings("project", session_file.displayName(null, "/home/demo/project//", session_id));
+    try std.testing.expectEqualStrings("project", session_file.displayName(null, "C:\\Users\\x\\project\\/", session_id));
+}
+
+test "session_file.displayName: both separators count, even when mixed" {
+    // どの OS でも同じ結果にする（OS の区切りだけを見る実装は、どちらかの OS で落ちる）。
+    try std.testing.expectEqualStrings("プロジェクト", session_file.displayName(null, "C:/Users\\x/プロジェクト", session_id));
+    try std.testing.expectEqualStrings("project", session_file.displayName(null, "/home/demo\\project", session_id));
+}
+
+test "session_file.displayName: an empty name counts as no name" {
+    try std.testing.expectEqualStrings("project", session_file.displayName("", "/home/demo/project", session_id));
+    try std.testing.expectEqualStrings("00000000", session_file.displayName("", null, session_id));
+}
+
+test "session_file.displayName: a cwd of only separators falls back to the session id" {
+    try std.testing.expectEqualStrings("00000000", session_file.displayName(null, "/", session_id));
+    try std.testing.expectEqualStrings("00000000", session_file.displayName(null, "\\\\", session_id));
+    try std.testing.expectEqualStrings("00000000", session_file.displayName("", "", session_id));
+}
+
+test "session_file.displayName: a drive root keeps the drive name" {
+    // 区切りを外して残った文字列は、区切りがなければそのまま名前にする（ドライブ名を特別扱いしない）。
+    try std.testing.expectEqualStrings("C:", session_file.displayName(null, "C:\\", session_id));
 }
 
 test "session_file.displayName: without a name or cwd, the first 8 characters of the session id" {
-    try std.testing.expectEqualStrings("00000000", try session_file.displayName(null, null, session_id));
-    try std.testing.expectEqualStrings("abcdef12", try session_file.displayName(null, null, "abcdef12-3456"));
-    try std.testing.expectEqualStrings("short", try session_file.displayName(null, null, "short"));
+    try std.testing.expectEqualStrings("00000000", session_file.displayName(null, null, session_id));
+    try std.testing.expectEqualStrings("abcdef12", session_file.displayName(null, null, "abcdef12-3456"));
+    try std.testing.expectEqualStrings("abcdef12", session_file.displayName(null, null, "abcdef12"));
+    try std.testing.expectEqualStrings("short", session_file.displayName(null, null, "short"));
 }
 
 // ---------------------------------------------------------------------------
